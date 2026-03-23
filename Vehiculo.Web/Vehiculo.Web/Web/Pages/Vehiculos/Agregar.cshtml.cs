@@ -1,5 +1,6 @@
 using Abstracciones.Interfaces.Reglas;
 using Abstracciones.Modelos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ using System.Text.Json;
 
 namespace Web.Pages.Vehiculos
 {
+    [Authorize(Roles = "1")]
     public class AgregarModel : PageModel
     {
         private readonly IConfiguracion _configuracion;
@@ -43,7 +45,7 @@ namespace Web.Pages.Vehiculos
             }
 
             string endpoint = _configuracion.ObtenerMetodo("ApiEndPoints", "AgregarVehiculo");
-            var cliente = new HttpClient();
+            var cliente = ObtenerClienteConToken();
             var solicitud = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var respuesta = await cliente.PostAsJsonAsync(endpoint,vehiculo);
             respuesta.EnsureSuccessStatusCode();
@@ -53,7 +55,7 @@ namespace Web.Pages.Vehiculos
         private async Task ObtenerMarcas()
         {
             string endpoint = _configuracion.ObtenerMetodo("ApiEndPoints", "ObtenerMarcas");
-            var cliente = new HttpClient();
+            var cliente = ObtenerClienteConToken();
             var solicitud = new HttpRequestMessage(HttpMethod.Get, endpoint);
 
             var respuesta = await cliente.SendAsync(solicitud);
@@ -76,7 +78,7 @@ namespace Web.Pages.Vehiculos
         private async Task<List<Modelo>> ObtenerModelos(Guid marcaId)
         {
             string endpoint = _configuracion.ObtenerMetodo("ApiEndPoints", "ObtenerModelos");
-            var cliente = new HttpClient();
+            var cliente = ObtenerClienteConToken();
             var solicitud = new HttpRequestMessage(HttpMethod.Get, string.Format(endpoint,marcaId));
 
             var respuesta = await cliente.SendAsync(solicitud);
@@ -97,6 +99,18 @@ namespace Web.Pages.Vehiculos
         {
             var modelos = await ObtenerModelos(marcaID);
             return new JsonResult(modelos);
+        }
+
+        private HttpClient ObtenerClienteConToken()
+        {
+            var tokenClaim = HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == "Token");
+            var cliente = new HttpClient();
+            if (tokenClaim != null)
+                cliente.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue(
+                        "Bearer", tokenClaim.Value);
+            return cliente;
         }
     }
 }

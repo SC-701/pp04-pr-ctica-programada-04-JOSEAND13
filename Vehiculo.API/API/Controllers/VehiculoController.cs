@@ -23,7 +23,7 @@ namespace API.Controllers
         #region Operaciones
 
         [HttpPost]
-        [Authorize(Roles = "2")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> Agregar([FromBody] VehiculoRequest vehiculo)
         {
             var resultado = await _vehiculoFlujo.Agregar(vehiculo);
