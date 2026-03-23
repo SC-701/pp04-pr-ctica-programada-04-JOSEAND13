@@ -2,12 +2,14 @@
 using Abstracciones.Interfaces.Flujo;
 using Abstracciones.Modelos;
 using Flujo;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MarcaController : ControllerBase, IMarcaController
     {
         private IMarcaFlujo _marcaFlujo;
